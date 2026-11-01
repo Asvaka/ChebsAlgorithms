@@ -22,29 +22,47 @@ def get_GTFS_Feed(url, output_path) -> gk.Feed:
     return feed
 
 #NEED TO GET STOP-STOP TRAVEL TIME AND DIST
-def get_GTFS_ADJ_list(feed:gk.Feed) -> pd.DataFrame:
-
-    # Limit to a single date
+def prep_GTFS(feed:gk.Feed) -> pd.DataFrame:
+    #Limit to a single date because its easier to analyze trips for just one day
+    #We could expand later?
     active_trips = feed.get_trips(date=TRIP_DATE)["trip_id"]
 
     #Filter stop times to only include active trips
     stop_times = feed.stop_times[feed.stop_times["trip_id"].isin(active_trips)]
     stop_times = stop_times[["trip_id", "stop_sequence", "stop_id", "arrival_time", "departure_time"]]
 
-    #Sort stop times bt trip_id and sequence
+    #Sort stop times bt trip_id and sequence, this makes sure the same trip is
     stop_times = stop_times.sort_values(by=["trip_id", "stop_sequence"])
 
     #convert to seconds
     stop_times["arrival_sec"] = list(map(gk.helpers.timestr_to_seconds, stop_times['arrival_time']))
     stop_times["departure_sec"] = list(map(gk.helpers.timestr_to_seconds, stop_times['departure_time']))
-    print(stop_times.head(10))
+
+    #Shift stop times to get the next stop for each trip
+    stop_times["next_stop_id"] = stop_times.groupby("trip_id")["stop_id"].shift(-1)
+    stop_times["next_arrival_sec"] = stop_times.groupby("trip_id")["arrival_sec"].shift(-1)
+    stop_times["travel_time_sec"] = stop_times["next_arrival_sec"] - stop_times["departure_sec"]
+
+    #Drop last stop for each trip because it has no next stop and gives NAN
+    stop_times = stop_times.dropna(subset=["next_stop_id"])
+
+    return stop_times[["trip_id", "stop_id", "next_stop_id", "travel_time_sec"]]
 
 
-
-def adj_list(s):
-    pass
-
+def adj_list(df: pd.DataFrame) -> dict:
+    adj = {}
+    for _, row in df.iterrows():
+        stop_id = row["stop_id"]
+        next_stop_id = row["next_stop_id"]
+        travel_time_sec = row["travel_time_sec"]
+        if stop_id not in adj:
+            adj[stop_id] = {}
+        adj[stop_id][next_stop_id] = travel_time_sec
+    return adj
 
 
 feed = get_GTFS_Feed(SALEM_CHERRIOTS_URL, SALEM_CHERRIOTS_ZIP)
-get_GTFS_ADJ_list(feed)
+stop_times_df = prep_GTFS(feed)
+print(stop_times_df)
+adjacency_list = adj_list(stop_times_df)
+
