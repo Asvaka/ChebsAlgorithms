@@ -38,9 +38,12 @@ def prep_GTFS(feed:gk.Feed) -> pd.DataFrame:
     stop_times["arrival_sec"] = list(map(gk.helpers.timestr_to_seconds, stop_times['arrival_time']))
     stop_times["departure_sec"] = list(map(gk.helpers.timestr_to_seconds, stop_times['departure_time']))
 
-    #Shift stop times to get the next stop for each trip
+    #Shift stop times to get the next stop for each trip, 
+    #Group by trip id bc it makes sure we only look at the next stop for that trip
     stop_times["next_stop_id"] = stop_times.groupby("trip_id")["stop_id"].shift(-1)
     stop_times["next_arrival_sec"] = stop_times.groupby("trip_id")["arrival_sec"].shift(-1)
+
+    #Calc total travel time between current stop and next stop for each trip
     stop_times["travel_time_sec"] = stop_times["next_arrival_sec"] - stop_times["departure_sec"]
 
     #Drop last stop for each trip because it has no next stop and gives NAN
@@ -63,6 +66,6 @@ def adj_list(df: pd.DataFrame) -> dict:
 
 feed = get_GTFS_Feed(SALEM_CHERRIOTS_URL, SALEM_CHERRIOTS_ZIP)
 stop_times_df = prep_GTFS(feed)
-print(stop_times_df)
 adjacency_list = adj_list(stop_times_df)
+print(adjacency_list)
 
