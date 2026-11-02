@@ -8,7 +8,7 @@ import requests, os
 
 SALEM_CHERRIOTS_URL = "https://cherriots.rideralerts.com/InfoPoint/gtfs-zip.ashx"
 SALEM_CHERRIOTS_ZIP = "salem_cherriots_GTFS.zip"
-TRIP_DATE = "20261111" 
+TRIP_DATE = "20261117" 
 
 def get_GTFS_Feed(url, output_path) -> gk.Feed:
     path = os.path.dirname(__file__)
