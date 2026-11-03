@@ -2,7 +2,11 @@
 
 ## Setup
 
-Install Python 3.10 or newer. This is a Python project. The planner and tests use only the Python standard library.
+Install Python 3.10 or newer. This is a Python project. The planner and tests use only the Python standard library. Matplotlib is required for the preliminary plots.
+
+In your terminal make sure it is installed using the command:
+
+'python3 -m pip install -r matplotlib_requirements.txt'
 
 Keep these files in the same directory:
 
@@ -11,6 +15,8 @@ Keep these files in the same directory:
 - 'dijkstra.py' (shortest-path search)
 - 'test_transit_dijkstra.py' (automated tests)
 - 'salem_cherriots_GTFS.zip' (bundled schedule data)
+- 'preliminary_dijkstra_scaling.py' (plot generation)
+- 'matplotlib_requirements.txt' (plotting dependencies)
 
 ## Running the Planner
 
@@ -45,7 +51,16 @@ feed query above is a separate integration check.
 
 ## Preliminary Plot
 
-//
+To produce the preliminary plot, run the 'preliminary_dijkstra_scaling.py' file.
+
+Running the script again overwrites these files with the new measurements.
+
+This creates the 'results' folder which generates:
+- 'results/preliminary_plot.png' (mean query time versus input size(graph nodes))
+- 'results/raw.csv' (all 10 timed query runs at each size)
+- 'results/summary.csv' (mean, standard deviation, node/edge counts, and a separate single graph-build timing per size)
+- 'results/metadata.json' (query details and exact ordered trip IDs used to construct the nested subsets)
+
 
 ## Implementation
 
