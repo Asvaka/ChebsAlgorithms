@@ -6,6 +6,7 @@ Install Python 3.10 or newer. This is a Python project. The planner and tests us
 
 Keep these files in the same directory:
 
+- 'salem_transit_data.py' (data loading and schedule preparation)
 - 'transit_dijkstra.py' (graph construction and command-line planner)
 - 'dijkstra.py' (shortest-path search)
 - 'test_transit_dijkstra.py' (automated tests)
