@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"name": "ChebsAlgorithms",
+			"path": "."
+		},
+		{
+			"name": "google_transit",
+			"path": "../../../google_transit"
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true
+	}
+}

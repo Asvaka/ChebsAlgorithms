@@ -13,7 +13,7 @@ from urllib.request import urlopen
 
 SALEM_CHERRIOTS_URL = "https://cherriots.rideralerts.com/InfoPoint/gtfs-zip.ashx"
 SALEM_CHERRIOTS_ZIP = "salem_cherriots_GTFS.zip"
-TRIP_DATE = "20261111" 
+TRIP_DATE = "20261117" 
 
 def get_GTFS_Feed(url=SALEM_CHERRIOTS_URL, output_path=SALEM_CHERRIOTS_ZIP):
     """Explicitly downloads a feed, saves it, and reads its tables."""
@@ -97,4 +97,12 @@ def prep_GTFS(feed, date=TRIP_DATE):
                 raise ValueError('GTFS events are not in chronological order.')
             previous_departure = departure
 
+    #print(prepared)
     return dict(prepared)
+
+
+# feed = get_GTFS_Feed(SALEM_CHERRIOTS_URL, SALEM_CHERRIOTS_ZIP)
+# prep = prep_GTFS(feed, TRIP_DATE)
+
+# first_key = next(iter(prep))
+# print(first_key, prep[first_key])
