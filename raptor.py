@@ -5,6 +5,7 @@ Round bAsed Public Transit Optimized Router
 """
 from salem_transit_data import *
 from collections import defaultdict
+import math
 
 
 #Take in a schedule from prep_GTFS, schedule = prep_GTFS(feed, date)
@@ -39,24 +40,48 @@ def build_stop_routes(routes: dict[str, dict[str,list]]) -> dict[str, list[tuple
     
 #Input: Source and target stops ps, pt and departure time T.  
 def raptor(routes, stop_routes, source, target, departure_time):
-
     """
     Given a source stop ps, a target stop pt, and a departure time T, it asks for a journey that 
     departs ps no earlier than T, and arrives at pt as early as possible. [RAPTOR]
+    - Departure time given in formatio hh:mm:ss
     """
+    departure_time = seconds(departure_time)
 
-    # Initialization of the algorithm
-    # 1 foreach i do
-    # 2 τi(·) ← ∞
-    # 3 τ ∗(·) ← ∞
-    # 4 τ0(ps) ← τ
-    # 5 mark ps
+    #T[k][p]: Earliest arrival time at stop p, using at most k trips
+    tau = defaultdict(lambda: defaultdict(lambda: math.inf))
 
-# 1 foreach i do
-# 2 τi(·) ← ∞
-# 3 τ ∗(·) ← ∞
-# 4 τ0(ps) ← τ
-# 5 mark ps
+    #T*[p]: Overall earliest arrival time at stop p across all rounds
+    tau_star = defaultdict(lambda: math.inf)
+
+    #Init round one with the orgin stop
+    #T[0][origin] = departure_time 
+    #T*[origin] = dept_time
+    tau[0][source] = departure_time
+    tau_star[source] = departure_time
+
+    marked_stops = {source}
+
+    k = 0
+    while marked_stops:
+        k+=1
+        improved = False
+
+        for stop, times in tau[k-1].items():
+            tau[k][stop] = times
+
+        Q = {}
+
+        for stop in marked_stops:
+            print(f"stop: {stop}")
+            for route_id in stop_routes.get(stop, []):
+                print(f"stop_route: {stop_routes}")
+                stop_idx = routes[route_id].index(stop)
+                print(stop_idx)
+        marked_stops = False
+
+
+
+
 # 6 foreach k ← 1, 2, . . . do
 # // Accumulate routes serving marked
 # stops from previous round

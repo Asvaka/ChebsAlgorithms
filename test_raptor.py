@@ -1,6 +1,6 @@
 import unittest
-from raptor import build_routes, build_stop_routes, raptor
-from salem_transit_data import prep_GTFS, seconds
+from raptor import *
+from salem_transit_data import prep_GTFS
 
 class ScheduleTests(unittest.TestCase):
     def feed_small(self):
@@ -20,7 +20,9 @@ class ScheduleTests(unittest.TestCase):
         Checks if the route and stops for the small feed are built correctly for RAPTOR
         """
         print("Running test_small_route_building...")
+        #print(prep_GTFS(self.feed_small(), '20261111'))
         routes = build_routes(prep_GTFS(self.feed_small(), '20261111'))
+
         stop_routes = build_stop_routes(routes)
 
         #B should have two routes that stops at it, ABC and BD
@@ -29,6 +31,21 @@ class ScheduleTests(unittest.TestCase):
             self.assertEqual(len(routes[route_id]), 2)
             self.assertIn('B', routes[route_id]['stops'])
             self.assertEqual(position, routes[route_id]['stops'].index('B'))
+
+    def test_small_raptor(self):
+        """
+        Checks if raptor works
+        """
+        print("Running test_small_raptor...")
+
+        #print(prep_GTFS(self.feed_small(), '20261111'))
+        routes = build_routes(prep_GTFS(self.feed_small(), '20261111'))
+        #print(f"routes: {routes}")
+        stop_routes = build_stop_routes(routes)
+        #print(f"stop_routes: {stop_routes}")
+
+        raptor(routes, stop_routes, 'A', 'B', '08:00:00')
+
 
 
 if __name__ == '__main__':
