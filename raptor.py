@@ -47,74 +47,65 @@ def raptor(routes, stop_routes, source, target, departure_time):
     """
     departure_time = seconds(departure_time)
 
-    #T[k][p]: Earliest arrival time at stop p, using at most k trips
+    #T[k][p]: Earliest arrival time at stop p, using k rounds of trips
     tau = defaultdict(lambda: defaultdict(lambda: math.inf))
 
     #T*[p]: Overall earliest arrival time at stop p across all rounds
     tau_star = defaultdict(lambda: math.inf)
 
-    #Init round one with the orgin stop
+    #Init round one with the origin stop
     #T[0][origin] = departure_time 
     #T*[origin] = dept_time
     tau[0][source] = departure_time
     tau_star[source] = departure_time
 
-    marked_stops = {source}
+    #(round k, stop):(route_id, trip index, boarding position)
+    parent = {}
+
+    marked_stops = set()
+    marked_stops.add(source)
 
     k = 0
     while marked_stops:
         k+=1
-        improved = False
+        boarding_pos = 0
 
         for stop, times in tau[k-1].items():
             tau[k][stop] = times
-
         Q = {}
 
+        #Accumulate routes serving marked
         for stop in marked_stops:
-            print(f"stop: {stop}")
-            for route_id in stop_routes.get(stop, []):
-                print(f"stop_route: {stop_routes}")
-                stop_idx = routes[route_id].index(stop)
-                print(stop_idx)
-        marked_stops = False
+            for route_id, pos in stop_routes.get(stop, []):
+                if route_id not in Q or Q[route_id] > pos:
+                    Q[route_id] = pos
 
+        marked_stops = set()
 
+        #Traverse each route
+        for route_id, pos in Q.items():
+            t = None
+            boarding_pos = 0
 
+            for num, stop_pi in enumerate(routes[route_id]['stops'][pos:], pos):
+                #Can the label be improved in this round? Includes local nd target pruning
+                if t is not None:
+                    arr_time_at_pi = routes[route_id]['trips'][t][num]['arrival_sec']
+                    min_tau_taustar = min(tau_star[stop_pi],tau_star[target])
+                    if arr_time_at_pi < min_tau_taustar:
+                        parent[(k,stop_pi)] = (route_id, t, boarding_pos)
+                        tau[k][stop_pi] = arr_time_at_pi
+                        tau_star[stop_pi] = arr_time_at_pi
+                        marked_stops.add(stop_pi)
+                # Can we catch an earlier trip at pi?
+                if t is None or (t is not None and tau[k-1][stop_pi] <= routes[route_id]['trips'][t][num]['departure_sec']):
+                    for trip_index, trip in enumerate(routes[route_id]['trips']):
+                        trip_dep = trip[num]['departure_sec']
+                        if trip_dep >= tau[k-1][stop_pi]:
+                            t = trip_index
+                            boarding_pos=num
+                            break
+    #print(parent)
+    print(f"Earliest arrival from starting stop {source} to departing stop {target} is {hhmmss(tau_star[target])}")
+    return
 
-# 6 foreach k ← 1, 2, . . . do
-# // Accumulate routes serving marked
-# stops from previous round
-# 7 Clear Q
-# 8 foreach marked stop p do
-# 9 foreach route r serving p do
-# 10 if (r, p′) ∈ Q for some stop p′ then
-# 11 Substitute (r, p′) by (r, p) in Q if p
-# comes before p′ in r
-# 12 else
-# 13 Add (r, p) to Q
-# 14 unmark p
-# // Traverse each route
-# 15 foreach route (r, p) ∈ Q do
-# 16 t ← ⊥ // the current trip
-# 17 foreach stop pi of r beginning with p do
-# // Can the label be improved in
-# this round? Includes local
-# and target pruning
-# 18 if t 6 = ⊥ and
-# arr(t, pi) < min{τ ∗(pi), τ ∗(pt)} then
-# 19 τk(pi) ← τarr(t, pi)
-# 20 τ ∗(pi) ← τarr(t, pi)
-# 21 mark pi
-# // Can we catch an earlier trip
-# at pi?
-# 22 if τk−1(pi) ≤ τdep(t, pi) then
-# 23 t ← et(r, pi)
-# // Look at foot-paths
-# 24 foreach marked stop p do
-# 25 foreach foot-path (p, p′) ∈ F do
-# 26 τk(p′) ← min{τk(p′), τk(p) + `(p, p′)}
-# 27 mark p′
-# // Stopping criterion
-# 28 if no stops are marked then
-# 29 stop

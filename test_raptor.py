@@ -44,7 +44,7 @@ class ScheduleTests(unittest.TestCase):
         stop_routes = build_stop_routes(routes)
         #print(f"stop_routes: {stop_routes}")
 
-        raptor(routes, stop_routes, 'A', 'B', '08:00:00')
+        raptor(routes, stop_routes, 'A', 'D', '08:00:00')
 
 
 
