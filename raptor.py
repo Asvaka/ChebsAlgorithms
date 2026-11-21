@@ -43,7 +43,7 @@ def raptor(routes, stop_routes, source, target, departure_time):
     """
     Given a source stop ps, a target stop pt, and a departure time T, it asks for a journey that 
     departs ps no earlier than T, and arrives at pt as early as possible. [RAPTOR]
-    - Departure time given in formatio hh:mm:ss
+    - Departure time given in format hh:mm:ss
     """
     departure_time = seconds(departure_time)
 
@@ -59,8 +59,11 @@ def raptor(routes, stop_routes, source, target, departure_time):
     tau[0][source] = departure_time
     tau_star[source] = departure_time
 
+
+
     #(round k, stop):(route_id, trip index, boarding position)
     parent = {}
+    parent[(0, source)] = None
 
     marked_stops = set()
     marked_stops.add(source)
@@ -81,7 +84,6 @@ def raptor(routes, stop_routes, source, target, departure_time):
                     Q[route_id] = pos
 
         marked_stops = set()
-
         #Traverse each route
         for route_id, pos in Q.items():
             t = None
@@ -97,6 +99,7 @@ def raptor(routes, stop_routes, source, target, departure_time):
                         tau[k][stop_pi] = arr_time_at_pi
                         tau_star[stop_pi] = arr_time_at_pi
                         marked_stops.add(stop_pi)
+
                 # Can we catch an earlier trip at pi?
                 if t is None or (t is not None and tau[k-1][stop_pi] <= routes[route_id]['trips'][t][num]['departure_sec']):
                     for trip_index, trip in enumerate(routes[route_id]['trips']):
@@ -105,7 +108,41 @@ def raptor(routes, stop_routes, source, target, departure_time):
                             t = trip_index
                             boarding_pos=num
                             break
-    #print(parent)
-    print(f"Earliest arrival from starting stop {source} to departing stop {target} is {hhmmss(tau_star[target])}")
-    return
+
+    
+    #print(f"Earliest arrival from starting stop {source} to departing stop {target} is {hhmmss(tau_star[target])}")
+    return tau_star[target], parent
+
+
+def feed_small():
+        """
+        Returns a small sample feed. 
+        Contains:
+            - One active service date
+            - Two trips and five stops:
+                - Trip abc runs A -> B -> C from 08:00 to 08:20; trip bd runs B -> D from 08:25 to 08:35.
+        """
+        def stop(trip, seq, name, time):
+                    return dict(trip_id=trip, stop_sequence=str(seq), stop_id=name, arrival_time=time, departure_time=time)
+
+        return dict(calendar=[], calendar_dates=[dict(service_id='S', date='20261111', exception_type='1')],
+                    trips=[dict(trip_id='abc', service_id='S'), dict(trip_id='bd', service_id='S')],
+                    transfers=[], frequencies=[], stop_times=[
+                        stop('abc', 0, 'A', '08:00:00'), stop('abc', 1, 'B', '08:10:00'),
+                        stop('abc', 2, 'C', '08:20:00'), stop('bd', 0, 'B', '08:25:00'),
+                        stop('bd', 1, 'D', '08:35:00')
+                    ])
+
+feed = feed_small()
+
+def test_small_raptor():
+        """
+        Returns the earliest arrival from route A to route D using the small feed.
+        """
+        routes = build_routes(prep_GTFS(feed_small(), '20261111'))
+        stop_routes = build_stop_routes(routes)
+        earliest_arrival, path = raptor(routes, stop_routes, 'A', 'D', '08:00:00')
+        print(earliest_arrival)
+
+test_small_raptor()
 

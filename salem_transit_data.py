@@ -102,12 +102,11 @@ def prep_GTFS(feed, date=TRIP_DATE):
                 raise ValueError('GTFS events are not in chronological order.')
             previous_departure = departure
 
-    #print(prepared)
     return dict(prepared)
 
 
-# feed = get_GTFS_Feed(SALEM_CHERRIOTS_URL, SALEM_CHERRIOTS_ZIP)
-# prep = prep_GTFS(feed, TRIP_DATE)
+feed = get_GTFS_Feed(SALEM_CHERRIOTS_URL, SALEM_CHERRIOTS_ZIP)
+prep = prep_GTFS(feed, TRIP_DATE)
 
-# first_key = next(iter(prep))
-# print(first_key, prep[first_key])
+for key, value in prep.items():
+    print(f"{key}: {value}")
